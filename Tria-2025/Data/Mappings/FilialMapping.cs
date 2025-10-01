@@ -11,7 +11,11 @@ namespace Tria_2025.Data.Mappings
             //Mapeando restrições e linhas da tabela Filial
             builder.ToTable("Filial");
 
-            builder.HasKey(f => f.Id);
+builder.HasKey(f => f.Id);
+builder.Property(f => f.Id)
+       .ValueGeneratedOnAdd(); // Indica que o valor será gerado pelo banco
+
+            
 
             builder.Property(f => f.Nome)
                 .IsRequired()

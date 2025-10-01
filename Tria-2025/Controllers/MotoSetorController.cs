@@ -1,128 +1,161 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Tria_2025.Connection;
-using Tria_2025.DTO;
 using Tria_2025.Models;
+using Tria_2025.Services;
+using Tria_2025.Exceptions;
+using Tria_2025.DTO; // Usando o DTO de MotoSetor
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Tria_2025.DTO.MotoSetor;
 
 namespace Tria_2025.Controllers
 {
+    /// <summary>
+    /// Controller responsável pela entidade de ligação MotoSetor.
+    /// Delega a validação da existência de Moto e Setor ao MotoSetorService.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class MotoSetorController : ControllerBase
     {
-        public readonly AppDbContext _context;
+        private readonly MotoSetorService _service;
 
-        public MotoSetorController(AppDbContext context)
+        /// <summary>
+        /// Construtor que injeta o serviço de MotoSetor.
+        /// </summary>
+        /// <param name="service">O serviço de MotoSetor para orquestração.</param>
+        public MotoSetorController(MotoSetorService service)
         {
-            _context = context;
+            _service = service;
         }
 
+        // --- GET ALL ---
+        /// <summary>
+        /// Obtém a lista completa de todas as associações Moto-Setor.
+        /// </summary>
+        /// <returns>Uma lista de objetos MotoSetor.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MotoSetor>>> Get()
         {
-            return await _context.Moto_Setores.ToListAsync();
+            var associacoes = await _service.GetAllMotoSetoresAsync();
+            return Ok(associacoes);
         }
 
-        //Buscar por ID
+        // --- GET POR ID ---
+        /// <summary>
+        /// Busca uma associação Moto-Setor pelo seu ID.
+        /// </summary>
+        /// <param name="id">O ID da associação.</param>
+        /// <returns>O objeto MotoSetor solicitado ou 404 Not Found.</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<MotoSetor>> Get(int id)
         {
-            var motoSetor = await _context.Moto_Setores.FindAsync(id);
-            if (motoSetor == null)
+            try
             {
-                return NotFound();
+                var motoSetor = await _service.GetMotoSetorByIdAsync(id);
+                return Ok(motoSetor);
             }
-
-            return motoSetor;
+            catch (ObjetoNaoEncontradoException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar o registro." });
+            }
         }
 
-        //Buscar por placa 
-        [HttpGet("placa/{placa}")]
-        public async Task<ActionResult<List<MotoSetor>>> BuscarPorPlaca(string placa)
-        {
-            var motoBuscada = await _context.Motos.FirstOrDefaultAsync(m => m.Placa.ToLower() == placa.ToLower());
-            if (motoBuscada == null)
-            {
-                return NotFound($"Nenhuma moto registrada com a placa {placa}");
-            }
-            var registrosEncontrados = await _context.Moto_Setores.Where(ms => ms.IdMoto == motoBuscada.Id).ToListAsync();
-
-            if (registrosEncontrados == null) { 
-                return NotFound("Nenhum registro encontrado");
-            }
-            return Ok(registrosEncontrados);
-        }
-
-        //PUT
+        // --- PUT (ATUALIZAÇÃO) ---
+        /// <summary>
+        /// Atualiza uma associação Moto-Setor, verificando a validade de IdMoto e IdSetor.
+        /// </summary>
+        /// <param name="id">O ID da associação a ser atualizada.</param>
+        /// <param name="dto">O DTO com os novos dados.</param>
+        /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, MotoSetorDTO dto)
+        public async Task<ActionResult> Put(int id, [FromBody] MotoSetorDTO dto)
         {
-            var entidade = await _context.Moto_Setores.FindAsync(id);
-            if (entidade == null)
-                return NotFound($"Não foi encontrado um MotoSetor com o ID {id}.");
-
-            var moto = await _context.Motos.FindAsync(dto.IdMoto);
-            var setor = await _context.Setores.FindAsync(dto.IdSetor);
-            if (moto == null || setor == null)
-            {
-                return BadRequest("Moto ou Setor não encontrados.");
-            }
-
-            entidade.Data = dto.Data;
-            entidade.Fonte = dto.Fonte;
-            entidade.IdMoto = dto.IdMoto;
-            entidade.IdSetor = dto.IdSetor;
-            entidade.Moto = moto;
-            entidade.Setor = setor;
-
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
-
-        //POST
-        [HttpPost]
-        public async Task<ActionResult> Post(MotoSetorDTO motoSetorDto)
-        {
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var setorObjeto = await _context.Setores.FindAsync(motoSetorDto.IdSetor);
-            var motoObjeto = await _context.Motos.FindAsync(motoSetorDto.IdMoto);
-
-            if (motoObjeto == null || setorObjeto == null) {
-                return BadRequest("Não foi possível encontrar o endereço passado");
+            try
+            {
+                // O Service fará a validação das chaves estrangeiras
+                await _service.UpdateMotoSetorAsync(id, dto);
+                return NoContent();
             }
-
-            var motoSetorCompleto = new MotoSetor { 
-                Data = motoSetorDto.Data,
-                Fonte = motoSetorDto.Fonte,
-                IdMoto = motoSetorDto.IdMoto,
-                IdSetor = motoSetorDto.IdSetor,
-                Moto = motoObjeto,
-                Setor = setorObjeto
-            };
-
-
-            _context.Moto_Setores.Add(motoSetorCompleto);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(Get), new { id = motoSetorCompleto.Id }, motoSetorCompleto);
+            // 404: Se o registro original (pelo ID da URL) não for encontrado
+            catch (ObjetoNaoEncontradoException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            // 400: Se IdMoto ou IdSetor não existirem (lançado como BadRequest pelo Service)
+            catch (CampoInvalidoException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao atualizar o registro." });
+            }
         }
 
-        //DELETE
+        // --- POST (CRIAÇÃO) ---
+        /// <summary>
+        /// Cria uma nova associação Moto-Setor, validando a existência de IdMoto e IdSetor.
+        /// </summary>
+        /// <param name="motoSetorDto">Dados da associação.</param>
+        /// <returns>A nova associação criada ou 400 Bad Request em caso de falha.</returns>
+        [HttpPost]
+        public async Task<ActionResult> Post([FromBody] MotoSetorDTO motoSetorDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // O Service fará a validação de existência de Moto e Setor.
+                var novaAssociacao = await _service.CreateMotoSetorAsync(motoSetorDto);
+
+                // Retorna 201 Created
+                return CreatedAtAction(nameof(Get), new { id = novaAssociacao.Id }, novaAssociacao);
+            }
+            // 400: Captura erro se IdMoto ou IdSetor não existirem
+            catch (ObjetoNaoEncontradoException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Erro interno", Detalhes = ex.Message });
+            }
+        }
+
+        // --- DELETE ---
+        /// <summary>
+        /// Exclui uma associação Moto-Setor permanentemente pelo seu ID.
+        /// </summary>
+        /// <param name="id">O ID da associação a ser excluída.</param>
+        /// <returns>204 No Content ou 404 Not Found.</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var setor = await _context.Moto_Setores.FindAsync(id);
-            if (setor == null) return NotFound($"Não fói possível encontrar com o id {id}");
-
-            _context.Moto_Setores.Remove(setor);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            try
+            {
+                await _service.DeleteMotoSetorAsync(id);
+                return NoContent();
+            }
+            catch (ObjetoNaoEncontradoException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao deletar o registro." });
+            }
         }
-
-
     }
 }

@@ -12,8 +12,8 @@ using Tria_2025.Connection;
 namespace Tria_2025.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250522134426_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251001202848_arrumandoSetor")]
+    partial class arrumandoSetor
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,8 +86,7 @@ namespace Tria_2025.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IdEndereco")
-                        .IsUnique();
+                    b.HasIndex("IdEndereco");
 
                     b.ToTable("Filial", (string)null);
                 });
@@ -96,33 +95,38 @@ namespace Tria_2025.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(10)");
+                        .HasColumnType("NUMBER(10)")
+                        .HasColumnName("ID");
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Cargo")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("NVARCHAR2(50)");
+                        .HasColumnType("NVARCHAR2(50)")
+                        .HasColumnName("CARGO");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("NVARCHAR2(80)");
+                        .HasColumnType("NVARCHAR2(80)")
+                        .HasColumnName("EMAIL");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(250)
-                        .HasColumnType("NVARCHAR2(250)");
+                        .HasColumnType("NVARCHAR2(250)")
+                        .HasColumnName("NOME");
 
                     b.Property<string>("Senha")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("NVARCHAR2(30)");
+                        .HasColumnType("NVARCHAR2(30)")
+                        .HasColumnName("SENHA");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Funcionario", (string)null);
+                    b.ToTable("FUNCIONARIO", (string)null);
                 });
 
             modelBuilder.Entity("Tria_2025.Models.Moto", b =>
@@ -134,7 +138,6 @@ namespace Tria_2025.Migrations
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Ano")
-                        .HasMaxLength(4)
                         .HasColumnType("NUMBER(10)");
 
                     b.Property<int>("IdFilial")
@@ -156,6 +159,11 @@ namespace Tria_2025.Migrations
                         .HasColumnType("NVARCHAR2(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("IdFilial");
+
+                    b.HasIndex("Placa")
+                        .IsUnique();
 
                     b.ToTable("Moto", (string)null);
                 });
@@ -211,12 +219,23 @@ namespace Tria_2025.Migrations
             modelBuilder.Entity("Tria_2025.Models.Filial", b =>
                 {
                     b.HasOne("Tria_2025.Models.Endereco", "Endereco")
-                        .WithOne()
-                        .HasForeignKey("Tria_2025.Models.Filial", "IdEndereco")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany()
+                        .HasForeignKey("IdEndereco")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Endereco");
+                });
+
+            modelBuilder.Entity("Tria_2025.Models.Moto", b =>
+                {
+                    b.HasOne("Tria_2025.Models.Filial", "Filial")
+                        .WithMany()
+                        .HasForeignKey("IdFilial")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Filial");
                 });
 
             modelBuilder.Entity("Tria_2025.Models.MotoSetor", b =>

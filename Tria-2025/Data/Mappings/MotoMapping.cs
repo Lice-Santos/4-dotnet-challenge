@@ -12,10 +12,15 @@ namespace Tria_2025.Data.Mappings
             builder.ToTable("Moto");
 
             builder.HasKey(m => m.Id);
+            builder.Property(f => f.Id)
+               .ValueGeneratedOnAdd();
 
             builder.Property(m => m.Placa)
                 .IsRequired()
                 .HasMaxLength(7);
+
+            builder.HasIndex(m => m.Placa)
+    .IsUnique();
 
             builder.Property(m => m.Modelo)
                 .HasMaxLength(50);

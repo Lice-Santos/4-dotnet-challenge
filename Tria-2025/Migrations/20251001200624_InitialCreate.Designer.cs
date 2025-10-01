@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 using Tria_2025.Connection;
@@ -11,9 +12,11 @@ using Tria_2025.Connection;
 namespace Tria_2025.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251001200624_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,37 +96,33 @@ namespace Tria_2025.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("NUMBER(10)")
-                        .HasColumnName("ID");
+                        .HasColumnName("Id");
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Cargo")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("NVARCHAR2(50)")
-                        .HasColumnName("CARGO");
+                        .HasColumnType("NVARCHAR2(50)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(80)
-                        .HasColumnType("NVARCHAR2(80)")
-                        .HasColumnName("EMAIL");
+                        .HasColumnType("NVARCHAR2(80)");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(250)
-                        .HasColumnType("NVARCHAR2(250)")
-                        .HasColumnName("NOME");
+                        .HasColumnType("NVARCHAR2(250)");
 
                     b.Property<string>("Senha")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("NVARCHAR2(30)")
-                        .HasColumnName("SENHA");
+                        .HasColumnType("NVARCHAR2(30)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("FUNCIONARIO", (string)null);
+                    b.ToTable("Funcionario", (string)null);
                 });
 
             modelBuilder.Entity("Tria_2025.Models.Moto", b =>

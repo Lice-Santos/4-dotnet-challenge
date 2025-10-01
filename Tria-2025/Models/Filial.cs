@@ -7,6 +7,7 @@ namespace Tria_2025.Models
 {
     public class Filial
     {
+        [Key]
         public int Id { get; set; }
         public string Nome { get; set; }
         //chave estrangeira mapeada no mapping

@@ -1,6 +1,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using Tria_2025.Connection;
+using Tria_2025.Repository;
+using Tria_2025.Services;
+using Tria_2025.Validations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,31 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IEnderecoRepository, EnderecoRepository>();
+builder.Services.AddScoped<IFuncionarioRepository, FuncionarioRepository>();
+builder.Services.AddScoped<ISetorRepository, SetorRepository>();
+builder.Services.AddScoped<IFilialRepository, FilialRepository>();
+builder.Services.AddScoped<IMotoSetorRepository, MotoSetorRepository>();
+builder.Services.AddScoped<IMotoRepository, MotoRepository>();
+
+// Validações que usam Repositórios (são classes normais, não estáticas)
+builder.Services.AddScoped<FuncionarioValidation>();
+builder.Services.AddScoped<SetorValidation>();
+builder.Services.AddScoped<FilialValidation>();
+builder.Services.AddScoped<MotoValidation>();
+builder.Services.AddScoped<MotoSetorValidation>();
+// A validação de EnderecoValidation é estática, então não precisa ser registrada.
+
+// === REGISTRO DOS SERVICES (Adicionado) ===
+// Os Services injetam Repositórios e Validações
+builder.Services.AddScoped<FuncionarioService>();
+builder.Services.AddScoped<EnderecoService>();
+builder.Services.AddScoped<SetorService>();
+builder.Services.AddScoped<FilialService>();
+builder.Services.AddScoped<MotoService>();
+builder.Services.AddScoped<MotoSetorService>();
+
 
 var app = builder.Build();
 

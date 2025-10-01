@@ -13,6 +13,9 @@ namespace Tria_2025.Data.Mappings
 
             builder.HasKey(s => s.Id);
 
+            builder.Property(f => f.Id)
+       .ValueGeneratedOnAdd();
+
             builder.Property(s => s.Nome)
                 .IsRequired();
         }

@@ -46,23 +46,6 @@ namespace Tria_2025.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Moto",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "NUMBER(10)", nullable: false)
-                        .Annotation("Oracle:Identity", "START WITH 1 INCREMENT BY 1"),
-                    Placa = table.Column<string>(type: "NVARCHAR2(7)", maxLength: 7, nullable: false),
-                    Modelo = table.Column<string>(type: "NVARCHAR2(50)", maxLength: 50, nullable: false),
-                    Ano = table.Column<int>(type: "NUMBER(10)", maxLength: 4, nullable: false),
-                    TipoCombustivel = table.Column<string>(type: "NVARCHAR2(50)", maxLength: 50, nullable: false),
-                    IdFilial = table.Column<int>(type: "NUMBER(10)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Moto", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Setor",
                 columns: table => new
                 {
@@ -92,7 +75,30 @@ namespace Tria_2025.Migrations
                         column: x => x.IdEndereco,
                         principalTable: "Endereco",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Moto",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "NUMBER(10)", nullable: false)
+                        .Annotation("Oracle:Identity", "START WITH 1 INCREMENT BY 1"),
+                    Placa = table.Column<string>(type: "NVARCHAR2(7)", maxLength: 7, nullable: false),
+                    Modelo = table.Column<string>(type: "NVARCHAR2(50)", maxLength: 50, nullable: false),
+                    Ano = table.Column<int>(type: "NUMBER(10)", nullable: false),
+                    TipoCombustivel = table.Column<string>(type: "NVARCHAR2(50)", maxLength: 50, nullable: false),
+                    IdFilial = table.Column<int>(type: "NUMBER(10)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Moto", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Moto_Filial_IdFilial",
+                        column: x => x.IdFilial,
+                        principalTable: "Filial",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -126,7 +132,17 @@ namespace Tria_2025.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Filial_IdEndereco",
                 table: "Filial",
-                column: "IdEndereco",
+                column: "IdEndereco");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Moto_IdFilial",
+                table: "Moto",
+                column: "IdFilial");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Moto_Placa",
+                table: "Moto",
+                column: "Placa",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -144,22 +160,22 @@ namespace Tria_2025.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Filial");
-
-            migrationBuilder.DropTable(
                 name: "Funcionario");
 
             migrationBuilder.DropTable(
                 name: "Moto_Setor");
 
             migrationBuilder.DropTable(
-                name: "Endereco");
-
-            migrationBuilder.DropTable(
                 name: "Moto");
 
             migrationBuilder.DropTable(
                 name: "Setor");
+
+            migrationBuilder.DropTable(
+                name: "Filial");
+
+            migrationBuilder.DropTable(
+                name: "Endereco");
         }
     }
 }
