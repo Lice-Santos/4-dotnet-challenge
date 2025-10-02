@@ -1,54 +1,90 @@
-# 🛠️DESCRIÇÃO DO PROJETO - TRIA #
+# 🚀 TRIA-2025 | Projeto TriaTag (Gerenciamento de Frotas)
 
-**TRIATAG**
+## 👤 Integrantes do Projeto
+| Nome do Integrante       | RM       |
+|--------------------------|----------|
+| Alice Nunes              | 559052   |
+| Guilherme Akira          | 556128   |
+| Anne Rezendes            | 556779   |
 
-Posto a dor relatada pela Mottu, o principal problema é a falta de organização na movimentação de motos dentro do próprio pátio. As motos após a triagem, são direcionadas aos setores e muitas delas são perdidas nessa movimentação, já que muitas acabam no setor errado. Por isso, criamos a TriaTag - uma câmera conectada a um sistema (com várias funcionalidades) que lê a placa das motos ao entrarem em um setor. 
+---
 
-**1. Iniciar Triagem:**
-Após a moto ser analisada e diagnosticada na triagem, o funcionário seleciona na aplicação para qual setor a moto deve ser colocada. Se por um acaso a mesma for posta no setor errado, o sistema impedirá o cadastro dessa moto em tal setor. 
+## 🎯 Objetivo do Projeto
+A partir da dor relatada pela **Mottu**, o principal problema é a **falta de organização na movimentação de motos** dentro do pátio.  
 
-**2. Localizar moto:**
-Dentro da aplicação, o funcionário insere a placa da moto, e a mesma mostra em qual setor ela está. Conecatado com o IOT da moto, o sistema traz a opção de acionar a buzina e o pisca-alerta, para auxiliar o funcionário a encontrar a encontrá-la.
+O **Projeto TriaTag** é um sistema que visa **controlar a alocação de motos aos setores**, usando **validações de sistema** para garantir que as motos não sejam direcionadas ao setor errado.
 
-**3. Ver motos no pátio:**
-O funcionário insere o código da filial onde ele se encontra, seleciona o setor que deseja ver, e o sistema lista todas as motos que se encontram no momento, naquele setor.
+### 🔑 Funcionalidades Chave
+- **Validação de Setor:** Impede o cadastro de uma moto em um setor incorreto.  
+- **Localização Rápida:** Localiza a moto por placa e aciona o IoT (*buzina/pisca-alerta – simulado na API*).  
+- **Controle de Pátio:** Lista todas as motos presentes em uma filial e setor específico.  
 
+---
 
-## 📌 ROTAS
+## 💡 Justificativa Arquitetural (ASP.NET Core)
+O projeto utiliza a arquitetura **Multi-Camadas** (Repository e Service) baseada em **Injeção de Dependência (DI)**.
 
-Todas as entidades possuem rotas GET para:
-- Buscar **todos os registros**
-- Buscar **um registro específico por ID**
+1. **Robustez com Exceções:**  
+   Uso de **Exceções de Domínio** (`CampoJaExistenteException`, `ObjetoNaoEncontradoException`) na camada de Serviço, mapeadas para *status codes* HTTP adequados (**400, 404**) nos Controllers.  
+   Isso evita erros genéricos (**500**) no cliente.  
 
-### Rotas adicionais:
-- /api/Endereco/cep/{cep} -> busca um endereço através do cep;
-- /api/Endereco/logradouro/{logradouro} -> lista todos os endereços que possuam o logradouro passado;
-- /api/Filial/nome/{nomeFilial} -> lista filiais através do nome passado;
-- /api/Funcionario/nome/{nomeFuncionario} -> lista todos os funcionários que tenham o nome passado;
-- /api/Funcionario/login -> simula um login com email e senha;
-- /api/Funcionario/cargo/{cargo} -> lista todos os funcionários com o cargo passado;
-- /api/Moto/ano/{ano} -> lista todas as motos que possuem o ano igual ou maior que o ano passado;
-- /api/Moto/placa/{placa} -> busca uma moto pela placa;
-- /api/Moto/modelo/{modelo} -> lista todas as motos com o modelo passado;
-- /api/MotoSetor/placa/{placa} -> lista todos os registros encontrados da respectiva moto da placa passada.
+2. **Separação Clara:**  
+   Os **Controllers** são leves, focados apenas em receber requisições e retornar respostas HTTP.  
+   Toda lógica de negócio fica isolada na camada de **Services**.  
 
-## ⚙️INSTALAÇÃO ##
-**Bibliotecas instaladas:**
-- dotnet add package Microsoft.EntityFrameworkCore.Design
-- dotnet add package Microsoft.EntityFrameworkCore
-- dotnet add package Microsoft.EntityFrameworkCore.Tools
-- dotnet add package Oracle.EntityFrameworkCore
+---
 
-**EF Core:**
-- dotnet tool install --global dotnet-ef
+## ⚙️ Instruções de Execução da API
+### Pré-requisitos
+1. .NET 8.0 SDK instalado  
+2. Ferramenta `dotnet-ef` instalada globalmente  
+3. Banco de dados **Oracle** configurado na `ConnectionStrings:DefaultConnection`  
 
-**Comandos Utilizados para Criação do Migration:**
-- Add-Migration InitialCreate
-- dotnet ef migrations add InitialCreate
+---
 
+## 📌 Rotas Disponíveis
+Todas as entidades possuem rotas **GET** para:
+- Buscar **todos os registros**  
+- Buscar **um registro específico por ID**  
 
+### Rotas adicionais
+- `/api/Endereco/cep/{cep}` → busca endereço pelo CEP  
+- `/api/Endereco/logradouro/{logradouro}` → lista endereços pelo logradouro  
+- `/api/Filial/nome/{nomeFilial}` → busca filial pelo nome  
+- `/api/Funcionario/nome/{nomeFuncionario}` → lista funcionários por nome  
+- `/api/Funcionario/login` → simula login com e-mail e senha  
+- `/api/Funcionario/cargo/{cargo}` → lista funcionários por cargo  
+- `/api/Moto/ano/{ano}` → lista motos com ano ≥ informado  
+- `/api/Moto/placa/{placa}` → busca moto pela placa  
+- `/api/Moto/modelo/{modelo}` → lista motos por modelo  
+- `/api/MotoSetor/placa/{placa}` → lista registros da moto pela placa  
 
+---
 
+## ⚙️ Instalação
+### 📦 Bibliotecas Instaladas
+```bash
+dotnet add package Microsoft.EntityFrameworkCore.Design
+dotnet add package Microsoft.EntityFrameworkCore
+dotnet add package Microsoft.EntityFrameworkCore.Tools
+dotnet add package Oracle.EntityFrameworkCore
+```
 
+### 📌 EF Core CLI
+```bash
+dotnet tool install --global dotnet-ef
+```
 
+### 🔨 Comandos Utilizados para Migration
+```bash
+Add-Migration InitialCreate
+dotnet ef migrations add InitialCreate
+```
 
+---
+
+## 🔗 Acesso e Endpoints
+- **Swagger UI:** [https://localhost:7143/swagger/index.html](https://localhost:7143/swagger/index.html)  
+- **OpenAPI (JSON):** [https://localhost:7143/swagger/v1/swagger.json](https://localhost:7143/swagger/v1/swagger.json)  
+
+⚠️ **Atenção:** Verificar se o **cache do navegador** está limpo, pois causou erros em execuções anteriores.
