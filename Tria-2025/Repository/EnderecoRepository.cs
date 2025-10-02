@@ -11,7 +11,6 @@ namespace Tria_2025.Repository
 
         public EnderecoRepository(AppDbContext context)
         {
-            // O AppDbContext é injetado, exatamente como no seu Controller original
             _context = context;
         }
 
@@ -26,7 +25,6 @@ namespace Tria_2025.Repository
 
         public async Task UpdateAsync(Endereco endereco)
         {
-            // Attach e State = Modified são usados para garantir que o EF rastreie as alterações
             _context.Enderecos.Attach(endereco);
             _context.Entry(endereco).State = EntityState.Modified;
             await SaveChangesAsync();
@@ -42,7 +40,6 @@ namespace Tria_2025.Repository
 
         public async Task<Endereco> GetByIdAsync(int id)
         {
-            // Usa FindAsync que é otimizado para buscar pela chave primária
             return await _context.Enderecos.FindAsync(id);
         }
 
@@ -55,13 +52,11 @@ namespace Tria_2025.Repository
 
         public async Task<Endereco> GetByCepAsync(string cep)
         {
-            // Retorna o primeiro Endereço que corresponda ao CEP
             return await _context.Enderecos.FirstOrDefaultAsync(c => c.Cep == cep);
         }
 
         public async Task<IEnumerable<Endereco>> GetByLogradouroAsync(string logradouro)
         {
-            // Retorna a lista de Endereços que contenham o Logradouro, ignorando case
             return await _context.Enderecos
                                  .Where(c => c.Logradouro.ToLower().Contains(logradouro.ToLower()))
                                  .ToListAsync();
@@ -76,7 +71,6 @@ namespace Tria_2025.Repository
 
         public async Task<bool> SaveChangesAsync()
         {
-            // Retorna true se houver mais de 0 alterações salvas
             return await _context.SaveChangesAsync() > 0;
         }
     }

@@ -31,12 +31,28 @@ namespace Tria_2025.Controllers
         /// <summary>
         /// Obtém a lista completa de todos os setores cadastrados.
         /// </summary>
+        /// <remarks>
+        /// Exemplo de requisição:
+        ///
+        ///    GET /Setor
+        ///
+        /// </remarks>
         /// <returns>Uma lista de objetos Setor.</returns>
+        /// <response code="200"> Retorna a lista completa de produtos</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Setor>))] // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                     // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<IEnumerable<Setor>>> Get()
         {
-            var setores = await _service.GetAllSetoresAsync();
-            return Ok(setores);
+            try
+            {
+                var setores = await _service.GetAllSetoresAsync();
+                return Ok(setores);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar a lista de setores." });
+            }
         }
 
         // --- GET POR ID ---
@@ -46,6 +62,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID do setor.</param>
         /// <returns>O objeto Setor solicitado ou 404 Not Found.</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Setor))]           // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<Setor>> Get(int id)
         {
             try
@@ -53,7 +72,6 @@ namespace Tria_2025.Controllers
                 var setor = await _service.GetSetorByIdAsync(id);
                 return Ok(setor);
             }
-            // Captura a exceção de Not Found lançada pelo Service
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
@@ -70,8 +88,20 @@ namespace Tria_2025.Controllers
         /// </summary>
         /// <param name="idPassado">O ID do setor a ser atualizado (da URL).</param>
         /// <param name="setorDto">O DTO com o novo nome.</param>
+        /// <remarks>
+        /// Exemplo de Payload (para PUT /api/Setor/5):
+        ///
+        ///     PUT /api/Setor/5
+        ///     {
+        ///        "nome": "Setor de aluguel"
+        ///     }
+        /// </remarks>
         /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
         [HttpPut("{idPassado}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                            // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta validações e CampoJaExistente
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Put(int idPassado, [FromBody] SetorDTO setorDto)
         {
             if (!ModelState.IsValid)
@@ -81,16 +111,13 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // O Service fará a validação de unicidade do nome e a checagem do ID
                 await _service.UpdateSetorAsync(idPassado, setorDto);
                 return NoContent();
             }
-            // Exceções de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
             }
-            // Exceções de validação (400) - Nome já existe ou tamanho inválido
             catch (CampoJaExistenteException ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -110,8 +137,19 @@ namespace Tria_2025.Controllers
         /// Cria um novo setor, verificando a unicidade do nome.
         /// </summary>
         /// <param name="setorDto">Dados do Setor (Nome).</param>
+        /// <remarks>
+        /// Exemplo de Payload:
+        ///
+        ///     POST /api/Setor
+        ///     {
+        ///        "nome": "BLOCO C"
+        ///     }
+        /// </remarks>
         /// <returns>O novo setor criado ou 400 Bad Request em caso de falha na validação.</returns>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Setor))]     // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta validações e unicidade
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Post([FromBody] SetorDTO setorDto)
         {
             if (!ModelState.IsValid)
@@ -121,13 +159,10 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // O Service fará a validação de Unicidade
                 var novoSetor = await _service.CreateSetorAsync(setorDto);
 
-                // Retorna 201 Created
                 return CreatedAtAction(nameof(Get), new { id = novoSetor.Id }, novoSetor);
             }
-            // Captura a exceção de validação de regra de negócio (400 Bad Request)
             catch (CampoJaExistenteException ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -149,6 +184,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID do setor a ser excluído.</param>
         /// <returns>204 No Content ou 404 Not Found.</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                            // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Delete(int id)
         {
             try

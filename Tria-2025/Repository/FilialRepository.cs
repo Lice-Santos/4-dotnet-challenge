@@ -17,7 +17,7 @@ namespace Tria_2025.Repository
 
         public async Task<Filial> AddAsync(Filial filial)
         {
-            _context.Filiais.Add(filial); // Assumindo o DbSet chama 'Filiais'
+            _context.Filiais.Add(filial); 
             await SaveChangesAsync();
             return filial;
         }
@@ -52,7 +52,6 @@ namespace Tria_2025.Repository
 
         // --- MÉTODO ESPECÍFICO PARA VALIDAÇÃO ---
 
-        // Verifica se já existe uma filial com o mesmo nome (ignorando case)
         public async Task<bool> NomeFilialExistsAsync(string nome)
         {
             return await _context.Filiais
@@ -63,7 +62,6 @@ namespace Tria_2025.Repository
 
         public async Task<bool> SaveChangesAsync()
         {
-            // Salva as alterações e retorna true se houver sucesso
             return await _context.SaveChangesAsync() > 0;
         }
 

@@ -8,7 +8,6 @@ namespace Tria_2025.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<Setor> builder)
         {
-            //Mapeando restrições e linhas da tabela Setor
             builder.ToTable("Setor");
 
             builder.HasKey(s => s.Id);

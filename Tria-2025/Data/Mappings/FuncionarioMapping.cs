@@ -8,16 +8,13 @@ namespace Tria_2025.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<Funcionario> builder)
         {
-            // Tabela sem aspas, em maiúsculas (Oracle não case-sensitive sem aspas)
             builder.ToTable("FUNCIONARIO");
 
-            // Chave primária
             builder.HasKey(f => f.Id);
             builder.Property(f => f.Id)
                    .HasColumnName("ID")
-                   .ValueGeneratedOnAdd(); // Garante identidade no Oracle
+                   .ValueGeneratedOnAdd(); 
 
-            // Colunas mapeadas sem aspas
             builder.Property(f => f.Nome)
                    .HasColumnName("NOME")
                    .IsRequired()

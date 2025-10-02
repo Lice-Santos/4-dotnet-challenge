@@ -13,7 +13,7 @@ namespace Tria_2025.Repository
         Task<Moto> GetByIdAsync(int id);
         Task<IEnumerable<Moto>> GetAllAsync();
 
-        // Método Específico para Validação (Unicidade de Placa)
+        // Método Específico para Validação
         Task<bool> PlacaExistsAsync(string placa);
 
         // MÉTODO ADICIONADO: Busca uma moto pela placa

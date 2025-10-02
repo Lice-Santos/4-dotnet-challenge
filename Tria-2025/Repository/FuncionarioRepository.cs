@@ -20,7 +20,7 @@ namespace Tria_2025.Repository
 
         public async Task<Funcionario> AddAsync(Funcionario funcionario)
         {
-            _context.Funcionarios.Add(funcionario); // Assumindo que o DbSet chama 'Funcionarios'
+            _context.Funcionarios.Add(funcionario);
             await _context.SaveChangesAsync();
             return funcionario;
         }
@@ -52,16 +52,14 @@ namespace Tria_2025.Repository
 
         // --- MÉTODO ESPECÍFICO PARA VALIDAÇÃO ---
 
-        // Retorna true se encontrar qualquer funcionário com o email fornecido (ignorando case).
         public async Task<bool> EmailExistsAsync(string email)
         {
 
-                string emailNormalized = email.ToUpper().Trim();
+            string emailNormalized = email.ToUpper().Trim();
 
-                // 2. CORREÇÃO CRÍTICA PARA ORACLE: Usa CountAsync() > 0 em vez de AnyAsync().
-                // 3. CORREÇÃO DE REGRA DE NEGÓCIO: Compara ambos em caixa alta (case-insensitive).
-                return await _context.Funcionarios
-                                     .CountAsync(f => f.Email.ToUpper() == emailNormalized) > 0;
+
+            return await _context.Funcionarios
+                                 .CountAsync(f => f.Email.ToUpper() == emailNormalized) > 0;
 
         }
 
@@ -74,16 +72,14 @@ namespace Tria_2025.Repository
         }
 
 
-public async Task<Funcionario> GetByEmailAndSenhaAsync(string email, string senha)
-    {
-        string emailNormalized = email.ToUpper().Trim();
+        public async Task<Funcionario> GetByEmailAndSenhaAsync(string email, string senha)
+        {
+            string emailNormalized = email.ToUpper().Trim();
 
-        // 1. Busca o funcionário:
-        // Utilizamos FirstOrDefaultAsync, que é seguro no Oracle.
-        // O 'await' agora é válido porque o método está marcado como 'async'.
-        return await _context.Funcionarios
-                             .FirstOrDefaultAsync(f => f.Email.ToUpper() == emailNormalized &&
-                                                       f.Senha == senha);
+
+            return await _context.Funcionarios
+                                 .FirstOrDefaultAsync(f => f.Email.ToUpper() == emailNormalized &&
+                                                           f.Senha == senha);
+        }
     }
-}
 }

@@ -34,10 +34,19 @@ namespace Tria_2025.Controllers
         /// </summary>
         /// <returns>Uma lista de objetos Moto.</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Moto>))] // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                 // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<IEnumerable<Moto>>> Get()
         {
-            var motos = await _service.GetAllMotosAsync();
-            return Ok(motos);
+            try
+            {
+                var motos = await _service.GetAllMotosAsync();
+                return Ok(motos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar a lista de motos." });
+            }
         }
 
         // --- GET POR ID ---
@@ -47,6 +56,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID da moto.</param>
         /// <returns>O objeto Moto solicitado ou 404 Not Found.</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Moto))]           // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<Moto>> Get(int id)
         {
             try
@@ -72,15 +84,25 @@ namespace Tria_2025.Controllers
         /// <param name="ano">O ano mínimo para a pesquisa.</param>
         /// <returns>Lista de motos encontradas ou 404 Not Found.</returns>
         [HttpGet("ano/{ano}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Moto>))] // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                             // ⭐️ Documenta não encontrado
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<List<Moto>>> BuscarMotosAcimaDoAno(int ano)
         {
-            var motos = await _service.GetMotosAcimaDoAnoAsync(ano);
-
-            if (motos == null || !motos.Any())
+            try
             {
-                return NotFound($"Nenhuma moto do ano {ano} ou superior foi encontrada.");
+                var motos = await _service.GetMotosAcimaDoAnoAsync(ano);
+
+                if (motos == null || !motos.Any())
+                {
+                    return NotFound($"Nenhuma moto do ano {ano} ou superior foi encontrada.");
+                }
+                return Ok(motos);
             }
-            return Ok(motos);
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar motos por ano." });
+            }
         }
 
         // --- GET POR PLACA ---
@@ -90,6 +112,9 @@ namespace Tria_2025.Controllers
         /// <param name="placa">A placa da moto.</param>
         /// <returns>O objeto Moto solicitado ou 404 Not Found.</returns>
         [HttpGet("placa/{placa}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Moto))]           // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<Moto>> BuscarPorPlaca(string placa)
         {
             try
@@ -115,15 +140,25 @@ namespace Tria_2025.Controllers
         /// <param name="modelo">O modelo da moto.</param>
         /// <returns>Lista de motos encontradas ou 404 Not Found.</returns>
         [HttpGet("modelo/{modelo}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Moto>))] // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                             // ⭐️ Documenta não encontrado
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<List<Moto>>> BuscarPorModelo(string modelo)
         {
-            var motos = await _service.GetMotosByModeloAsync(modelo);
-
-            if (motos == null || !motos.Any())
+            try
             {
-                return NotFound("Nenhuma moto com o modelo informado.");
+                var motos = await _service.GetMotosByModeloAsync(modelo);
+
+                if (motos == null || !motos.Any())
+                {
+                    return NotFound("Nenhuma moto com o modelo informado.");
+                }
+                return Ok(motos);
             }
-            return Ok(motos);
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar por modelo." });
+            }
         }
 
         // --- PUT (ATUALIZAÇÃO) ---
@@ -132,8 +167,24 @@ namespace Tria_2025.Controllers
         /// </summary>
         /// <param name="idPassado">O ID da moto a ser atualizada (da URL).</param>
         /// <param name="motoDTO">O objeto DTO com as novas informações.</param>
+        /// <remarks>
+        /// Exemplo de Payload (para PUT /api/Moto/1):
+        ///
+        ///     PUT /api/Moto/1
+        ///     {
+        ///        "placa": "ABC1234",
+        ///        "modelo": "Honda CB 500F (Atualizada)",
+        ///        "ano": 2024,
+        ///        "tipoCombustivel": "Gasolina",
+        ///        "idFilial": 2
+        ///     }
+        /// </remarks>
         /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
         [HttpPut("{idPassado}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                            // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta validações (Placa existente, inválido, etc.)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Put(int idPassado, [FromBody] MotoDTO motoDTO)
         {
             if (!ModelState.IsValid)
@@ -172,8 +223,23 @@ namespace Tria_2025.Controllers
         /// Cria uma nova moto, verificando a unicidade da placa e a existência da Filial.
         /// </summary>
         /// <param name="motoDTO">Dados da Moto e IdFilial.</param>
+        /// <remarks>
+        /// Exemplo de Payload:
+        ///
+        ///     POST /api/Moto
+        ///     {
+        ///        "placa": "XYZ9876",
+        ///        "modelo": "Honda CG Fan 160",
+        ///        "ano": 2022,
+        ///        "tipoCombustivel": "Flex",
+        ///        "idFilial": 1
+        ///     }
+        /// </remarks>
         /// <returns>A nova moto criada ou 400 Bad Request em caso de falha na validação.</returns>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Moto))]         // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta todas as exceções de validação
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Post([FromBody] MotoDTO motoDTO)
         {
             if (!ModelState.IsValid)
@@ -183,20 +249,17 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // O Service fará a validação de Unicidade da Placa e checagem da Filial
                 var novaMoto = await _service.CreateMotoAsync(motoDTO);
 
-                // Retorna 201 Created
                 return CreatedAtAction(nameof(Get), new { id = novaMoto.Id }, novaMoto);
             }
-            // Captura as exceções de validação de regra de negócio (400 Bad Request)
             catch (CampoJaExistenteException ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
+            // 🛑 ObjetoNaoEncontradoException aqui geralmente significa que IdFilial não existe
             catch (ObjetoNaoEncontradoException ex)
             {
-                // Capturado aqui para o caso de IdFilial não existir
                 return BadRequest(new { Message = ex.Message });
             }
             catch (CampoInvalidoException ex)
@@ -216,6 +279,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID da moto a ser excluída.</param>
         /// <returns>204 No Content ou 404 Not Found.</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                            // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Delete(int id)
         {
             try

@@ -9,7 +9,5 @@ namespace Tria_2025.Models
         public int Id { get; set; }
         public string Nome { get; set; }
 
-
-
     }
 }

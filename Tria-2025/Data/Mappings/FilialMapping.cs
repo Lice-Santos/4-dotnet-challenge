@@ -8,14 +8,13 @@ namespace Tria_2025.Data.Mappings
     {
         public void Configure(EntityTypeBuilder<Filial> builder)
         {
-            //Mapeando restrições e linhas da tabela Filial
             builder.ToTable("Filial");
 
-builder.HasKey(f => f.Id);
-builder.Property(f => f.Id)
-       .ValueGeneratedOnAdd(); // Indica que o valor será gerado pelo banco
+            builder.HasKey(f => f.Id);
+            builder.Property(f => f.Id)
+                   .ValueGeneratedOnAdd();
 
-            
+
 
             builder.Property(f => f.Nome)
                 .IsRequired()
@@ -24,9 +23,8 @@ builder.Property(f => f.Id)
             builder.Property(f => f.IdEndereco)
                 .IsRequired();
 
-            //Declarando os relacionamentos e as chaves estrangeiras da tabela
             builder.HasOne(f => f.Endereco)
-                .WithMany() 
+                .WithMany()
                 .HasForeignKey(f => f.IdEndereco)
                 .OnDelete(DeleteBehavior.Cascade);
         }

@@ -49,18 +49,15 @@ namespace Tria_2025.Repository
 
         // --- MÉTODO ESPECÍFICO PARA VALIDAÇÃO ---
 
-        // Verifica se já existe um setor com o mesmo nome (ignorando case)
         public async Task<bool> NomeSetorExistsAsync(string nome)
         {
-            return await _context.Setores
-                                   .CountAsync(s => s.Nome == nome) > 0;
+            return await _context.Setores.CountAsync(s => s.Nome == nome) > 0;
         }
 
         // --- MÉTODO AUXILIAR ---
 
         public async Task<bool> SaveChangesAsync()
         {
-            // Salva as alterações e retorna true se houver sucesso
             return await _context.SaveChangesAsync() > 0;
         }
     }

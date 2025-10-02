@@ -33,11 +33,19 @@ namespace Tria_2025.Controllers
         /// </summary>
         /// <returns>Uma lista de objetos Endereco.</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Endereco>))] // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                     // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<IEnumerable<Endereco>>> Get()
         {
-            // O Service retorna uma lista vazia se não houver registros.
-            var enderecos = await _service.GetAllEnderecosAsync();
-            return Ok(enderecos);
+            try
+            {
+                var enderecos = await _service.GetAllEnderecosAsync();
+                return Ok(enderecos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar a lista de endereços." });
+            }
         }
 
         // --- GET POR ID ---
@@ -47,6 +55,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID do endereço.</param>
         /// <returns>O objeto Endereco solicitado ou 404 Not Found.</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Endereco))]         // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<Endereco>> BuscarPorId(int id)
         {
             try
@@ -54,7 +65,6 @@ namespace Tria_2025.Controllers
                 var endereco = await _service.GetEnderecoByIdAsync(id);
                 return Ok(endereco);
             }
-            // Exceção de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
@@ -69,23 +79,24 @@ namespace Tria_2025.Controllers
         /// <summary>
         /// Pesquisa um endereço pelo número de CEP.
         /// </summary>
-        /// <param name="cep">O CEP a ser pesquisado (apenas dígitos).</param>
+        /// <param name="cep">O CEP a ser pesquisado (pode incluir formatação).</param>
         /// <returns>O objeto Endereco correspondente ou 404/400.</returns>
         [HttpGet("cep/{cep}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Endereco))]         // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta CepForaFormatacao e CampoVazio
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult<Endereco>> BuscarPorCep(string cep)
         {
             try
             {
-                // A validação de formato do CEP é feita dentro do Service antes da busca.
                 var endereco = await _service.GetEnderecoByCepAsync(cep);
                 return Ok(endereco);
             }
-            // Exceção de formato inválido (400 Bad Request)
             catch (CepForaFormatacao ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
-            // Exceção de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
@@ -100,9 +111,25 @@ namespace Tria_2025.Controllers
         /// <summary>
         /// Cria um novo endereço no banco de dados.
         /// </summary>
-        /// <param name="endereco">O objeto Endereco a ser criado.</param>
+        /// <param name="enderecoDto">O objeto Endereco a ser criado.</param>
+        /// <remarks>
+        /// Exemplo de Payload:
+        ///
+        ///     POST /api/Endereco
+        ///     {
+        ///        "cep": "4002-0010",
+        ///        "logradouro": "Rua do Ouro",
+        ///        "cidade": "Salvador",
+        ///        "estado": "BA",
+        ///        "numero": "150",
+        ///        "complemento": "Apto 101"
+        ///     }
+        /// </remarks>
         /// <returns>O novo endereço criado com o ID ou 400 Bad Request em caso de falha na validação.</returns>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Endereco))]     // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta todas as exceções de validação
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Post([FromBody] EnderecoDTO enderecoDto)
         {
             if (!ModelState.IsValid)
@@ -112,7 +139,7 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // 1. Cria a entidade a partir do DTO (sem Id)
+                // Mapeamento manual do DTO para o Model (recomendado usar AutoMapper)
                 var endereco = new Endereco
                 {
                     Logradouro = enderecoDto.Logradouro,
@@ -123,16 +150,15 @@ namespace Tria_2025.Controllers
                     Cep = enderecoDto.Cep
                 };
 
-                // 2. Chama o Service, que valida e salva
                 var novoEndereco = await _service.CreateEnderecoAsync(endereco);
 
-                // 3. Retorna 201 Created com o recurso criado
                 return CreatedAtAction(
                     nameof(BuscarPorId),
                     new { id = novoEndereco.Id },
                     novoEndereco
                 );
             }
+            // Captura as exceções de domínio mapeando para 400
             catch (CampoVazioException ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -145,6 +171,7 @@ namespace Tria_2025.Controllers
             {
                 return BadRequest(new { Message = ex.Message });
             }
+            // Captura erros de infraestrutura
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "Erro interno", Detalhes = ex.Message });
@@ -154,12 +181,30 @@ namespace Tria_2025.Controllers
 
         // --- PUT (ATUALIZAÇÃO) ---
         /// <summary>
-        /// Atualiza todas as informações de um endereço existente.
-        /// </summary>
-        /// <param name="id">O ID do endereço a ser atualizado (da URL).</param>
-        /// <param name="endereco">O objeto Endereco com as novas informações.</param>
-        /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
+                /// Atualiza todas as informações de um endereço existente.
+                /// </summary>
+                /// <param name="id">O ID do endereço a ser atualizado (da URL).</param>
+                /// <param name="endereco">O objeto Endereco com as novas informações.</param>
+                /// <remarks>
+                /// Exemplo de Payload:
+                ///
+                ///     PUT /api/Endereco/1
+                ///     {
+                ///        "id": 1, // ID é obrigatório no corpo do PUT para validação
+                ///        "logradouro": "Rua do Ouro (Atualizada)",
+                ///        "cidade": "Salvador",
+                ///        "estado": "BA",
+                ///        "numero": "150-A",
+                ///        "complemento": "Apto 101 B",
+                ///        "cep": "40020010"
+                ///     }
+                /// </remarks>
+                /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                            // ⭐️ Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // ⭐️ Documenta validação e erro de ID
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                           // ⭐️ Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                // ⭐️ Documenta erro de servidor
         public async Task<ActionResult> Put(int id, Endereco endereco)
         {
             // Validação básica do Controller
@@ -175,16 +220,13 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // O Service valida a existência do ID e o conteúdo do objeto.
                 await _service.UpdateEnderecoAsync(id, endereco);
                 return NoContent();
             }
-            // Exceção de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
             }
-            // Exceções de validação (400)
             catch (CampoVazioException ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -202,6 +244,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID do endereço a ser excluído.</param>
         /// <returns>204 No Content ou 404 Not Found.</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                  
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                         
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]              
         public async Task<ActionResult> Delete(int id)
         {
             try
@@ -209,7 +254,6 @@ namespace Tria_2025.Controllers
                 await _service.DeleteEnderecoAsync(id);
                 return NoContent();
             }
-            // Exceção de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });

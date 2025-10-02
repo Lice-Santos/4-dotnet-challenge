@@ -10,23 +10,18 @@ namespace Tria_2025.Validations
         {
             if (string.IsNullOrWhiteSpace(cep))
             {
-                // Garante que o nome do campo é claro para a exceção.
                 throw new CampoVazioException("CEP");
             }
 
 
-            // Verifica se tem 8 dígitos E se todos são numéricos
             if (cep.Length != 8 || !cep.All(char.IsDigit) || cep.Contains("-") || cep.Contains("/"))
             {
-                // A condição de erro estava incompleta, corrigi os parênteses.
                 throw new CepForaFormatacao();
             }
 
-            // Retorna o CEP limpo (os 8 dígitos)
         }
         
 
-        // Método principal que orquestra todas as validações
         public static void ValidarEndereco(Endereco endereco)
         {
             ValidarECorrigirCep(endereco.Cep);
@@ -70,7 +65,6 @@ namespace Tria_2025.Validations
                 throw new CampoVazioException("Número");
             }
 
-            // O número não pode ser menor que 1 caractere ou maior que 10 (excluindo 's/n')
             if (numero.Length < 1 || numero.Length > 10)
             {
                 throw new TamanhoInvalidoDeCaracteresException("Número", 10, 1);
@@ -84,7 +78,6 @@ namespace Tria_2025.Validations
                 throw new CampoVazioException("Estado");
             }
 
-            // Validação para o código da Unidade Federativa (UF)
             if (estado.Length != 2 || !estado.All(char.IsLetter))
             {
                 throw new CampoInvalidoException("Estado");

@@ -14,7 +14,6 @@ namespace Tria_2025.Services
         private readonly IFilialRepository _repository;
         private readonly FilialValidation _validation;
 
-        // O Service precisa do Repositório (DB) e da Validação (Regras)
         public FilialService(IFilialRepository repository, FilialValidation validation)
         {
             _repository = repository;
@@ -25,40 +24,32 @@ namespace Tria_2025.Services
 
         public async Task<Filial> CreateFilialAsync(FilialDTO dto)
         {
-            // 1. Executa as validações (unicidade de nome e existência de IdEndereco)
             await _validation.ValidateCreateAsync(dto);
 
-            // 2. Converte DTO para Model
             var novaFilial = new Filial
             {
                 Nome = dto.Nome,
                 IdEndereco = dto.IdEndereco
             };
 
-            // 3. Salva no Repositório
             return await _repository.AddAsync(novaFilial);
         }
 
         public async Task UpdateFilialAsync(int id, FilialDTO dto)
         {
-            // 1. Busca a Filial Existente
             var filialExistente = await _repository.GetByIdAsync(id);
 
             if (filialExistente == null)
             {
-                // Lança 404
                 throw new ObjetoNaoEncontradoException(nameof(Filial), id);
             }
 
-            // 2. Executa validações de Update: Passa o objeto original para checar a unicidade do nome
-            // Isso previne que a Filial falhe na validação de nome se ela mesma for dona do nome.
-            await _validation.ValidateUpdateAsync(id, dto, filialExistente); // <-- CHAMADA CORRIGIDA!
 
-            // 3. Aplica as alterações
+            await _validation.ValidateUpdateAsync(id, dto, filialExistente); 
+
             filialExistente.Nome = dto.Nome;
             filialExistente.IdEndereco = dto.IdEndereco;
 
-            // 4. Salva no Repositório
             await _repository.UpdateAsync(filialExistente);
         }
 
@@ -68,12 +59,10 @@ namespace Tria_2025.Services
 
             if (filial == null)
             {
-                // Lança 404
                 throw new ObjetoNaoEncontradoException(nameof(Filial), id);
             }
 
-            // Aqui é onde você adicionaria a lógica para checar se existem chaves estrangeiras pendentes (ex: motos ativas)
-            // if (await _repository.HasRelatedEntities(id)) { throw new BadRequestException("Não é possível deletar filial com motos ativas."); }
+
 
             await _repository.DeleteAsync(filial);
         }
@@ -86,7 +75,6 @@ namespace Tria_2025.Services
 
             if (filial == null)
             {
-                // Lança 404
                 throw new ObjetoNaoEncontradoException(nameof(Filial), id);
             }
             return filial;
@@ -99,7 +87,6 @@ namespace Tria_2025.Services
 
         public async Task<IEnumerable<Filial>> GetFiliaisByNomeAsync(string nome)
         {
-            // Note: O repositório já faz o ToLower().Contains()
             return await _repository.GetByNomeAsync(nome);
         }
     }

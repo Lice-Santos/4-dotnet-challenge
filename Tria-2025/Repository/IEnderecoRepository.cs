@@ -17,8 +17,8 @@ namespace Tria_2025.Repository
         Task<Endereco> GetByCepAsync(string cep);
         Task<IEnumerable<Endereco>> GetByLogradouroAsync(string logradouro);
 
-        // Métodos de Checagem (úteis para Validações/Updates)
+        // Métodos de Checagem
         Task<bool> ExistsByIdAsync(int id);
-        Task<bool> SaveChangesAsync(); // Para controle transacional
+        Task<bool> SaveChangesAsync(); 
     }
 }

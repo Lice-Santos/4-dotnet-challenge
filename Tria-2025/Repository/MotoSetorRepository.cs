@@ -17,7 +17,7 @@ namespace Tria_2025.Repository
 
         public async Task<MotoSetor> AddAsync(MotoSetor motoSetor)
         {
-            _context.Moto_Setores.Add(motoSetor); // Assumindo o DbSet chama 'Moto_Setores'
+            _context.Moto_Setores.Add(motoSetor); 
             await SaveChangesAsync();
             return motoSetor;
         }
@@ -39,11 +39,10 @@ namespace Tria_2025.Repository
 
         public async Task<MotoSetor> GetByIdAsync(int id)
         {
-            // Inclui as referências para carregamento eager
             return await _context.Moto_Setores
-                                 .Include(ms => ms.Moto)
-                                 .Include(ms => ms.Setor)
-                                 .FirstOrDefaultAsync(ms => ms.Id == id);
+                    .Include(ms => ms.Moto)
+                    .Include(ms => ms.Setor)
+                    .FirstOrDefaultAsync(ms => ms.Id == id);
         }
 
         public async Task<IEnumerable<MotoSetor>> GetAllAsync()

@@ -35,20 +35,15 @@ namespace Tria_2025.Validations
         /// <param name="originalFilial">Objeto Filial original antes das mudanças.</param>
         public async Task ValidateUpdateAsync(int id, FilialDTO dto, Filial originalFilial) // IMPLEMENTAÇÃO COMPLETA
         {
-            // Validação 1: Unicidade do Nome (Lógica Correta)
 
-            // Checa se o nome no DTO é diferente do nome original do objeto (ignorando case).
             if (!dto.Nome.Equals(originalFilial.Nome, StringComparison.OrdinalIgnoreCase))
             {
-                // Se o nome foi alterado, checamos se o novo nome já existe no DB.
                 if (await _filialRepository.NomeFilialExistsAsync(dto.Nome))
                 {
                     throw new CampoJaExistenteException(nameof(dto.Nome), dto.Nome);
                 }
             }
-            // Se o nome não foi alterado, a validação de unicidade passa.
 
-            // Validação 2: Existência da Chave Estrangeira IdEndereco
             await ValidateEnderecoExistsAsync(dto.IdEndereco);
         }
 
@@ -62,7 +57,6 @@ namespace Tria_2025.Validations
 
             if (endereco == null)
             {
-                // Lança ObjetoNaoEncontradoException se o Endereço referenciado não for encontrado
                 throw new ObjetoNaoEncontradoException("Endereco", idEndereco);
             }
         }

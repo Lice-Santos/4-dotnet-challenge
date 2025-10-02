@@ -15,10 +15,10 @@ namespace Tria_2025.Repository
         Task<Filial> GetByIdAsync(int id);
         Task<IEnumerable<Filial>> GetAllAsync();
 
-        // Método Específico para Validação (Unicidade de Nome)
+        // Método Específico para Validação
         Task<bool> NomeFilialExistsAsync(string nome);
 
-        // NOVO: Método para buscar por nome (necessário para o Controller/Service)
+        // NOVO: Método para buscar por nome 
         Task<IEnumerable<Filial>> GetByNomeAsync(string nome);
 
         // Para controle transacional

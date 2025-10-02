@@ -25,16 +25,13 @@ namespace Tria_2025.Validations
             if (string.IsNullOrWhiteSpace(dto.Placa))
                 throw new CampoVazioException(dto.Placa);
 
-            //1.Regra de Negócio: Placa Única
             if (await _motoRepository.PlacaExistsAsync(dto.Placa))
             {
                 throw new CampoJaExistenteException(nameof(dto.Placa), dto.Placa);
             }
 
-            // 2. Regra de Negócio: Tipo de Combustível Válido
             ValidateTipoCombustivel(dto.TipoCombustivel);
 
-            // 3. REGRA CRÍTICA: Existência da Filial
             await ValidateFilialExistsAsync(dto.IdFilial);
         }
 
@@ -42,21 +39,17 @@ namespace Tria_2025.Validations
 
         public async Task ValidateUpdateAsync(int id, MotoDTO dto, Moto originalMoto)
         {
-            // 1. Regra de Negócio: Placa Única (Checagem inteligente)
-            // Normaliza a placa nova para comparação
+
             string newPlacaNormalized = dto.Placa.ToUpper().Trim();
 
-            // Se a placa foi alterada E o novo valor já existe no DB
             if (newPlacaNormalized != originalMoto.Placa.ToUpper().Trim() &&
                 await _motoRepository.PlacaExistsAsync(newPlacaNormalized))
             {
                 throw new CampoJaExistenteException(nameof(dto.Placa), dto.Placa);
             }
 
-            // 2. Regra de Negócio: Tipo de Combustível Válido
             ValidateTipoCombustivel(dto.TipoCombustivel);
 
-            // 3. REGRA CRÍTICA: Existência da Filial
             await ValidateFilialExistsAsync(dto.IdFilial);
         }
 

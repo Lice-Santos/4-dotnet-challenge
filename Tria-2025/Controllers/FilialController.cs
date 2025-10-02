@@ -4,7 +4,7 @@ using Tria_2025.Services;
 using Tria_2025.Exceptions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Tria_2025.DTO; // Usando o DTO de Filial que definimos
+using Tria_2025.DTO;
 
 namespace Tria_2025.Controllers
 {
@@ -33,10 +33,19 @@ namespace Tria_2025.Controllers
         /// </summary>
         /// <returns>Uma lista de objetos Filial.</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Filial>))] // Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                     // Documenta erro de servidor
         public async Task<ActionResult<IEnumerable<Filial>>> Get()
         {
-            var filiais = await _service.GetAllFiliaisAsync();
-            return Ok(filiais);
+            try
+            {
+                var filiais = await _service.GetAllFiliaisAsync();
+                return Ok(filiais);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar a lista de filiais." });
+            }
         }
 
         // --- GET POR ID ---
@@ -46,6 +55,9 @@ namespace Tria_2025.Controllers
         /// <param name="id">O ID da filial.</param>
         /// <returns>O objeto Filial solicitado ou 404 Not Found.</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Filial))]           // Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                             // Documenta ObjetoNaoEncontradoException
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // Documenta erro de servidor
         public async Task<ActionResult<Filial>> BuscarPorId(int id)
         {
             try
@@ -70,17 +82,26 @@ namespace Tria_2025.Controllers
         /// <param name="nomeFilial">O nome ou parte do nome da filial.</param>
         /// <returns>Lista de filiais encontradas ou 404 Not Found.</returns>
         [HttpGet("nome/{nomeFilial}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Filial>))] // Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                             // Documenta não encontrado
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // Documenta erro de servidor
         public async Task<ActionResult<List<Filial>>> BuscarPorNome(string nomeFilial)
         {
-            // Note: Este método não usa Try-Catch para NotFound, pois retorna 404 se a lista estiver vazia.
-            var filiais = await _service.GetFiliaisByNomeAsync(nomeFilial);
-
-            if (filiais == null || !filiais.Any())
+            try
             {
-                return NotFound("Nenhuma filial encontrada com o nome especificado.");
-            }
+                var filiais = await _service.GetFiliaisByNomeAsync(nomeFilial);
 
-            return Ok(filiais);
+                if (filiais == null || !filiais.Any())
+                {
+                    return NotFound("Nenhuma filial encontrada com o nome especificado.");
+                }
+
+                return Ok(filiais);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "Ocorreu um erro interno ao buscar a filial por nome." });
+            }
         }
 
         // --- POST (CRIAÇÃO) ---
@@ -88,8 +109,20 @@ namespace Tria_2025.Controllers
         /// Cria uma nova filial, verificando a unicidade do nome e a validade do IdEndereco.
         /// </summary>
         /// <param name="filialDTO">Dados da Filial e IdEndereco.</param>
+        /// <remarks>
+        /// Exemplo de Payload:
+        ///
+        ///     POST /api/Filial
+        ///     {
+        ///        "nome": "Filial Nordeste",
+        ///        "idEndereco": 5
+        ///     }
+        /// </remarks>
         /// <returns>A nova filial criada ou 400 Bad Request em caso de falha na validação.</returns>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(Filial))]     // Documenta sucesso
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                           // Documenta validações e erros de FK
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  // Documenta erro de servidor
         public async Task<ActionResult> Post([FromBody] FilialDTO filialDTO)
         {
             if (!ModelState.IsValid)
@@ -99,7 +132,6 @@ namespace Tria_2025.Controllers
 
             try
             {
-                // O Service fará a validação de Unicidade e a checagem do IdEndereco
                 var novaFilial = await _service.CreateFilialAsync(filialDTO);
 
                 // Retorna 201 Created
@@ -119,11 +151,10 @@ namespace Tria_2025.Controllers
             {
                 return BadRequest(new { Message = ex.Message });
             }
-catch (Exception ex)
-{
-    return StatusCode(500, new { Message = "Erro interno", Detalhes = ex.Message });
-}
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Erro interno", Detalhes = ex.Message });
+            }
         }
 
         // --- PUT (ATUALIZAÇÃO) ---
@@ -132,8 +163,21 @@ catch (Exception ex)
         /// </summary>
         /// <param name="idPassado">O ID da filial a ser atualizada (da URL).</param>
         /// <param name="filialDTO">O objeto DTO com as novas informações.</param>
+        /// <remarks>
+        /// Exemplo de Payload (para PUT /api/Filial/1):
+        ///
+        ///     PUT /api/Filial/1
+        ///     {
+        ///        "nome": "Filial Nordeste (Atualizada)",
+        ///        "idEndereco": 5
+        ///     }
+        /// </remarks>
         /// <returns>204 No Content, 404 Not Found ou 400 Bad Request.</returns>
         [HttpPut("{idPassado}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                       
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]                        
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                          
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]                  
         public async Task<ActionResult> Put(int idPassado, [FromBody] FilialDTO filialDTO)
         {
             if (!ModelState.IsValid)
@@ -146,12 +190,10 @@ catch (Exception ex)
                 await _service.UpdateFilialAsync(idPassado, filialDTO);
                 return NoContent();
             }
-            // Exceções de objeto não encontrado (404)
             catch (ObjetoNaoEncontradoException ex)
             {
                 return NotFound(new { Message = ex.Message });
             }
-            // Exceções de validação (400)
             catch (CampoJaExistenteException ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -169,6 +211,9 @@ catch (Exception ex)
         /// <param name="id">O ID da filial a ser excluída.</param>
         /// <returns>204 No Content ou 404 Not Found.</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]                     
+        [ProducesResponseType(StatusCodes.Status404NotFound)]                          
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]   
         public async Task<ActionResult> Delete(int id)
         {
             try

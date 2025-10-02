@@ -17,7 +17,7 @@ namespace Tria_2025.Repository
 
         public async Task<Moto> AddAsync(Moto moto)
         {
-            _context.Motos.Add(moto); // Assumindo o DbSet chama 'Motos'
+            _context.Motos.Add(moto);
             await SaveChangesAsync();
             return moto;
         }
@@ -39,7 +39,6 @@ namespace Tria_2025.Repository
 
         public async Task<Moto> GetByIdAsync(int id)
         {
-            // Inclui a entidade Filial relacionada para que o serviço possa usá-la, se necessário.
             return await _context.Motos.Include(m => m.Filial).FirstOrDefaultAsync(m => m.Id == id);
         }
 
@@ -50,15 +49,13 @@ namespace Tria_2025.Repository
 
         // --- MÉTODO ESPECÍFICO PARA VALIDAÇÃO ---
 
-        // Verifica se já existe uma moto com a mesma placa (ignorando case)
-        // Essa função impõe a REGRA DE NEGÓCIO: unicidade case-insensitive.
+
         public async Task<bool> PlacaExistsAsync(string placa)
         {
-            string placaNormalized = placa.ToUpper().Trim(); // normaliza input
+            string placaNormalized = placa.ToUpper().Trim();
 
 
-            return await _context.Motos
-                                 .CountAsync(m => m.Placa.ToUpper() == placaNormalized) > 0;
+            return await _context.Motos.CountAsync(m => m.Placa.ToUpper() == placaNormalized) > 0;
         }
 
 
@@ -66,7 +63,6 @@ namespace Tria_2025.Repository
 
         public async Task<bool> SaveChangesAsync()
         {
-            // Retorna true se houver mais de 0 alterações salvas
             return await _context.SaveChangesAsync() > 0;
         }
 
