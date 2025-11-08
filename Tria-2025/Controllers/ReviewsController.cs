@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmartApi.Web.Models;
-using SmartApi.Web.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tria_2025.Connection;

@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.ML;
-using SmartApi.Web.Models;
-using SmartApi.Web.Services;
 using Tria_2025.Models;
 
 var builder = WebApplication.CreateBuilder(args);

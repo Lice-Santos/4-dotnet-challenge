@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SmartApi.Web.Models;
 using Tria_2025.Data.Mappings;
 using Tria_2025.Models;
 

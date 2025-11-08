@@ -1,9 +1,8 @@
 using Microsoft.Extensions.ML;
-using SmartApi.Web.Models;
 using Tria_2025.Models;
 using Tria_2025.Repository;
 
-namespace SmartApi.Web.Services
+namespace Tria_2025.Services
 {
     public class PredictionService : IPredictionService
     {

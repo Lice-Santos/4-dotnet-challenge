@@ -1,4 +1,4 @@
-﻿namespace SmartApi.Web.Models
+﻿namespace Tria_2025.Models
 {
    
     public class CreateReviewDto

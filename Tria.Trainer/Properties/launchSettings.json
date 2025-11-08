@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Tria.Trainer": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
