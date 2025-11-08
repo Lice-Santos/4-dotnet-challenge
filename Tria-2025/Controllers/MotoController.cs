@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Tria_2025.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Tria_2025.Controllers
 {
@@ -15,6 +16,7 @@ namespace Tria_2025.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MotoController : ControllerBase
     {
         private readonly MotoService _service;

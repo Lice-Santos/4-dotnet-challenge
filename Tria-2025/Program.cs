@@ -2,12 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Tria_2025.Connection;
+using Tria_2025.Interface;
 using Tria_2025.Repository;
 using Tria_2025.Services;
 using Tria_2025.Validations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -28,6 +35,30 @@ builder.Services.AddSwaggerGen(configutionSwagger =>
             Email = "alicenuunes05@gmail.com"
         }
     });
+    configutionSwagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Insira o token JWT no formato: Bearer {token}"
+    });
+
+    configutionSwagger.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     configutionSwagger.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
@@ -38,6 +69,7 @@ builder.Services.AddSwaggerGen(configutionSwagger =>
 builder.Services.AddDbContext<AppDbContext>(options =>
    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 // === Injeção de Dependência: Repositórios e Serviços ===
 
@@ -64,6 +96,34 @@ builder.Services.AddScoped<FilialService>();
 builder.Services.AddScoped<MotoService>();
 builder.Services.AddScoped<MotoSetorService>();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            // Define que o emissor ('iss') do token deve ser checado.
+            ValidateIssuer = true,
+
+            // Define que a audiência ('aud') do token deve ser checada.
+            ValidateAudience = true,
+
+            // Garante que o token não está expirado ('exp') e é válido no tempo atual.
+            ValidateLifetime = true,
+
+            // Garante que a assinatura do token é válida, evitando adulteração do token.
+            ValidateIssuerSigningKey = true,
+
+            // O valor esperado para o emissor (appsettings).
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+            // O valor exato esperado para a audiência (appsettings).
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            // A Chave Secreta usada para verificar a assinatura digital do token, vindo da config
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

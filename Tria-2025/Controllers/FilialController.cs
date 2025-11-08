@@ -5,6 +5,7 @@ using Tria_2025.Exceptions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tria_2025.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Tria_2025.Controllers
 {
@@ -14,6 +15,7 @@ namespace Tria_2025.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class FilialController : ControllerBase
     {
         private readonly FilialService _service;

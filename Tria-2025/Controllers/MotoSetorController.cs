@@ -6,6 +6,7 @@ using Tria_2025.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tria_2025.DTO.MotoSetor;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Tria_2025.Controllers
 {
@@ -15,6 +16,7 @@ namespace Tria_2025.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MotoSetorController : ControllerBase
     {
         private readonly MotoSetorService _service;
