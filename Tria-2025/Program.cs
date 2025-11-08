@@ -9,6 +9,10 @@ using Tria_2025.Validations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.ML;
+using SmartApi.Web.Models;
+using SmartApi.Web.Services;
+using Tria_2025.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +20,9 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 // Add services to the container.
+
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -87,6 +94,11 @@ builder.Services.AddScoped<SetorValidation>();
 builder.Services.AddScoped<FilialValidation>();
 builder.Services.AddScoped<MotoValidation>();
 builder.Services.AddScoped<MotoSetorValidation>();
+
+// 3. Configurar ML.NET PredictionEnginePool (Injeção de Dependência)
+var modelPath = Path.Combine(AppContext.BaseDirectory, "model.zip");
+builder.Services.AddPredictionEnginePool<ModelInput, ModelOutput>().FromFile(modelName: "DefaultModelName", filePath: modelPath);
+builder.Services.AddSingleton<IPredictionService, PredictionService>();
 
 // Serviços (Camada de Negócio)
 builder.Services.AddScoped<FuncionarioService>();
