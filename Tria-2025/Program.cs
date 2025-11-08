@@ -96,6 +96,8 @@ builder.Services.AddScoped<FilialService>();
 builder.Services.AddScoped<MotoService>();
 builder.Services.AddScoped<MotoSetorService>();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -125,6 +127,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("BancoDeDados");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -147,5 +151,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+// Endpoint de Health Check
+app.MapHealthChecks("/health");
+
 
 app.Run();

@@ -57,23 +57,6 @@ namespace SafeScribe_cp05.Controllers
             return Ok(new { Token = token });
         }
 
-        // ----------------------------------------------------------------------
-        // ENDPOINT 3: LOGOUT 
-        // ----------------------------------------------------------------------
-        [HttpPost("logout")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Logout()
-        {
-            var jti = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
-
-            if (string.IsNullOrEmpty(jti))
-                return BadRequest(new { Message = "Token mal formado ou JTI ausente." });
-
-
-            return Ok(new { Message = "Logout bem-sucedido. " });
-        }
 
 
     }
